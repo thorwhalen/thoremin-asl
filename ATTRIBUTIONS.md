@@ -1,8 +1,8 @@
 # Data attributions
 
-The weights in `models/` are trained only on data whose licence allows it. This file lists every source the **shipped** models were trained on, with its licence and the attribution it asks for. When a model is retrained on more sources, the training PR updates this list in the same commit.
+The weights in `src/lib/recognizer/models/` are trained only on data whose licence allows it. This file lists every source the **shipped** models were trained on, with its licence and the attribution it asks for. When a model is retrained on more sources, the training PR updates this list in the same commit.
 
-## Trained on (the shipped `models/static.json` and `models/motion.json`)
+## Trained on (the shipped `static.json` and `motion.json`)
 
 | Source | Licence | Used for |
 |---|---|---|

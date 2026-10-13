@@ -4,8 +4,8 @@
  */
 import { create } from 'zustand';
 import type { LoadStatus } from '@thoremin/lazy';
-import type { SignScores } from '../recognizer';
-import { signText } from '../recognizer';
+import type { SignScores } from '../lib/recognizer';
+import { signText } from '../lib/recognizer';
 import { ASL_SIGNS_NODE_ID } from '../branches';
 
 export interface AslLive {

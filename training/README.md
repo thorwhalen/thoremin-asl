@@ -1,6 +1,6 @@
 # training/: the ASL training pipeline
 
-Trains the two models the recogniser ships (`models/static.json`, `motion.json`) from public corpora, and writes the test fixtures that pin the TS featurisation to this code. The numbers and the reasoning behind every choice are in [`docs/asl-recognition.md`](../docs/asl-recognition.md).
+Trains the two models the recogniser ships (`src/lib/recognizer/models/static.json`, `motion.json`) from public corpora, and writes the test fixtures that pin the TS featurisation to this code. The numbers and the reasoning behind every choice are in [`docs/asl-recognition.md`](../docs/asl-recognition.md).
 
 Data stays out of the repo, under the app-data dir (`~/.local/share/thoremin-asl/`). Python because extraction needs MediaPipe's Python tasks API; `pip install -r requirements.txt` in a venv (mediapipe 0.10.21 runs headless; 1.x needs GL).
 
@@ -16,19 +16,19 @@ python extract_images.py $A/raw/marxulia_v03.parquet $A/marxulia_lm.jsonl $A/mod
 # 4. ASLNow! (HF, MIT): huggingface_hub snapshot_download('sid220/asl-now-fingerspelling') into $A/raw/aslnow
 # 5. Letters: compare, then export (geo features, logistic C=0.1, Aslense + ASLNow!)
 python train_static2.py $A/landmarks $A/raw/aslnow $A/marxulia_lm.jsonl --kinds geo --models logreg_c0.1 \
-  --export ../models/static.json --export-kind geo --export-model logreg_c0.1
+  --export ../src/lib/recognizer/models/static.json --export-kind geo --export-model logreg_c0.1
 # 6. Movement signs (on top of the exported letter model)
-python train_motion.py $A/landmarks ../models/static.json --none-per-clip 40 --thresh 0.9 \
-  --export ../models/motion.json
+python train_motion.py $A/landmarks ../src/lib/recognizer/models/static.json --none-per-clip 40 --thresh 0.9 \
+  --export ../src/lib/recognizer/models/motion.json
 # 7. Fixtures the TS tests read
-python make_parity_fixture.py $A/landmarks ../models/static.json ../models/motion.json ../test/fixtures/parity.json
+python make_parity_fixture.py $A/landmarks ../src/lib/recognizer/models/static.json ../src/lib/recognizer/models/motion.json ../test/fixtures/parity.json
 python make_replay_fixture.py $A/landmarks ../test/fixtures/clips.json b:0 l:0 y:0 yes:0 please:0 thankyou:0
 ```
 
 | File | Does |
 |---|---|
-| `asl_common.py` | The letter featurisers (`geo` is shipped; `world`, `image`, `both` for comparison). Mirrors `src/recognizer/features.ts`. |
-| `motion_common.py` | The motion-window featuriser. Mirrors `src/recognizer/motion.ts`. |
+| `asl_common.py` | The letter featurisers (`geo` is shipped; `world`, `image`, `both` for comparison). Mirrors `src/lib/recognizer/features.ts`. |
+| `motion_common.py` | The motion-window featuriser. Mirrors `src/lib/recognizer/motion.ts`. |
 | `handedness.py` | Geometry → MediaPipe handedness, for ASLNow! (which has none). |
 | `train_static.py`, `eval_cross.py` | The first comparison (world / image / both, Aslense only). |
 | `train_static2.py`, `diag_static2.py` | The second (geo, plus ASLNow!), the export, and the per-letter breakdown. |

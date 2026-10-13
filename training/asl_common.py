@@ -1,4 +1,4 @@
-"""Shared featurisation for the ASL models. MUST match src/recognizer/features.ts."""
+"""Shared featurisation for the ASL models. MUST match src/lib/recognizer/features.ts."""
 import json, os, re
 import numpy as np
 

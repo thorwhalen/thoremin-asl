@@ -19,7 +19,7 @@ import {
   type MlpModel,
   type SignRecognizer,
   type SignScores,
-} from '../recognizer';
+} from '../lib/recognizer';
 import { AslDialSchema, DEFAULT_ASL_DIAL, type AslDialParams } from '../schema';
 
 // The params ARE the `asl` dial; the schema lives in `../schema` so the eager stub can carry
@@ -35,7 +35,7 @@ export interface AslModels {
 
 /** The default loader: the weights as lazily imported JSON chunks. */
 export async function loadAslModels(): Promise<AslModels> {
-  const [s, m] = await Promise.all([import('../../models/static.json'), import('../../models/motion.json')]);
+  const [s, m] = await Promise.all([import('../lib/recognizer/models/static.json'), import('../lib/recognizer/models/motion.json')]);
   return { staticModel: parseMlpModel(s.default), motionModel: parseMlpModel(m.default) };
 }
 

@@ -1,6 +1,6 @@
 """Static ASL letters: build frame samples from the letter clips, compare classifiers with
 cross-validation GROUPED BY SOURCE CLIP, then (with --export) fit the chosen MLP on everything
-and write its weights as JSON for the recogniser (src/recognizer).
+and write its weights as JSON for the recogniser (src/lib/recognizer).
 
 usage: train_static.py <landmarks_dir> [--export out.json] [--kinds world,image,both]
 """

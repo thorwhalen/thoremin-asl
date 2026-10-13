@@ -35,16 +35,17 @@ Never pin a branch name: the lockfile must name an exact commit, so a deploy bui
 
 ### Developing against a thoremin checkout
 
-Clone both side by side. In thoremin, point the installed package at your working copy:
+Clone both side by side. In thoremin, copy your working copy over the installed package (re-run after each edit; `npm ci` in thoremin restores the pinned version):
 
 ```bash
 cd thoremin
-rm -rf node_modules/@thoremin/ext-asl && ln -s ../../../thoremin-asl node_modules/@thoremin/ext-asl
-npm run dev          # the app, with your plugin
-npx vitest run       # thoremin's suite against your plugin
+rsync -a --delete ../thoremin-asl/package.json ../thoremin-asl/src node_modules/@thoremin/ext-asl/
+cp -r ../thoremin-asl/test/. test/ext-asl/   # this plugin's tests, in thoremin's suite (do not commit them there)
+npm run dev                                   # the app, with your plugin
+npm run typecheck && npx vitest run           # thoremin's gates against your plugin
 ```
 
-thoremin's Vite config resolves the shared packages from its own `node_modules` (`resolve.dedupe`), so the linked plugin gets one copy of each. `npm ci` in thoremin restores the pinned version.
+A copy, not a symlink: TypeScript resolves a symlinked package's imports from its real path, outside thoremin's `node_modules`, and the shared SDK types go missing. (Vite alone would cope: thoremin's config resolves the shared packages from its own `node_modules`, `resolve.dedupe`.) This is exactly what this repository's CI does.
 
 ## What is where
 
@@ -58,8 +59,8 @@ thoremin's Vite config resolves the shared packages from its own `node_modules` 
 | `src/nodes/asl_signs.ts` | `asl-signs`: the hands to a reading (`reading`, by sign id; `signs`, the overlay's generic `CategoryScores`). Loads the weights lazily (`@thoremin/lazy`). |
 | `src/nodes/sign_chord.ts` | `sign-chord`: A..G to the key's chord, voiced and rendered like the face chords. |
 | `src/panels/asl.tsx`, `src/app/aslStatus.ts` | The Sign language section and its live readout. |
-| `src/recognizer/` | The recogniser: pure TypeScript (no DAG, no DOM, no ML runtime), usable without thoremin as `@thoremin/ext-asl/recognizer`. See [`docs/recognizer.md`](docs/recognizer.md). |
-| `models/` | The trained weights (`thoremin-asl-mlp/1` JSON). |
+| `src/lib/recognizer/` | The recogniser (the extension's library): pure TypeScript (no DAG, no DOM, no ML runtime), usable without thoremin as `@thoremin/ext-asl/recognizer`. See [`docs/recognizer.md`](docs/recognizer.md). |
+| `src/lib/recognizer/models/` | The trained weights (`thoremin-asl-mlp/1` JSON). |
 | `training/` | The Python training pipeline: landmark extraction, the models, the fixtures. See [`training/README.md`](training/README.md). |
 | `test/` | The recogniser's parity and replay tests (against fixtures written by `training/`) and the chord node's. |
 | `docs/asl-recognition.md` | The research write-up: the data, the model choices, the numbers. |
