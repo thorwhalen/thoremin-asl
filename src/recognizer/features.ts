@@ -1,8 +1,8 @@
 /**
  * The hand as a classifier sees it: 21 MediaPipe landmarks made independent of where the
  * hand is, how big it looks and which hand it is. MUST stay identical to the training
- * featurisation (`scripts/asl/asl_common.py`), or the weights mean nothing; the fixture
- * test in `test/asl/` pins the two together.
+ * featurisation (`training/asl_common.py`), or the weights mean nothing; the fixture
+ * test (`test/parity.test.ts`) pins the two together.
  *
  * The shipped model reads {@link geoFeatures} (angles, distances, orientation), which
  * generalised best across corpora. Two older views remain for comparison and research:
@@ -92,7 +92,7 @@ const TIPS = [4, 8, 12, 16, 20] as const;
  *    thumb tip's distance to eight knuckles (8): what tells M from N from S from T;
  *  - how the hand is turned to the camera: the palm's up, across and normal directions (9)
  *    and each finger's pointing direction (15): what tells H from U, P from K, G from Q.
- * Mirrors `geo_features` in `scripts/asl/asl_common.py`.
+ * Mirrors `geo_features` in `training/asl_common.py`.
  */
 export function geoFeatures(hand: HandInput, width: number): number[] | null {
   const k = hand.keypoints;

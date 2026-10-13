@@ -1,0 +1,85 @@
+# This plugin is useless without its host, so CI runs it inside a real thoremin: thoremin's
+# main, with THIS commit in place of the pinned plugin and this repository's tests added to
+# thoremin's suite. Then thoremin's own gates: the strict typecheck (it reaches the plugin
+# through its imports and the copied tests), the whole suite (its static guards scan the
+# plugin's source too), the build, and the lazy-bundle check (the plugin's code is in no chunk
+# a cold load fetches).
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      host_ref:
+        description: "thoremin ref to test against (a branch while a host change is in review)"
+        required: false
+        default: main
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  in-thoremin:
+    name: in thoremin (typecheck / test / build / lazy bundle)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: plugin
+
+      - uses: actions/checkout@v4
+        with:
+          repository: thorwhalen/thoremin
+          ref: ${{ inputs.host_ref || 'main' }}
+          path: host
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: host/package-lock.json
+
+      - name: Install thoremin (lockfile-exact)
+        working-directory: host
+        run: npm ci --no-audit --no-fund
+
+      - name: Put this commit in place of the pinned plugin, and add its tests
+        run: |
+          rm -rf host/node_modules/@thoremin/ext-asl
+          mkdir -p host/node_modules/@thoremin/ext-asl host/test/ext-asl
+          cp -r plugin/package.json plugin/src plugin/models host/node_modules/@thoremin/ext-asl/
+          cp -r plugin/test/. host/test/ext-asl/
+
+      - name: Typecheck (strict)
+        working-directory: host
+        run: npm run typecheck
+
+      - name: Test (thoremin's suite plus this plugin's)
+        working-directory: host
+        run: npm test
+
+      - name: Build
+        working-directory: host
+        run: npm run build
+
+      - name: The plugin stays out of the initial chunks
+        working-directory: host
+        run: npm run check:lazy
+
+  training:
+    name: training scripts compile
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m py_compile training/*.py

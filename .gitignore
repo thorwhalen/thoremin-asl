@@ -1,0 +1,11 @@
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+# Data never lives here (see ATTRIBUTIONS.md and training/README.md).
+data/
+*.mp4
+*.tar
+*.zip
+*.parquet

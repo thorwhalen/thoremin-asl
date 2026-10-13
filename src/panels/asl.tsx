@@ -9,7 +9,7 @@ import { dispatchDialPatch, dispatchDialSet, dispatchDialSetIn, useDialsSettings
 import { selectCls } from '@thoremin/sdk-ui/primitives';
 import { keyName, NOTE_LETTERS, NOTES, SCALE_TYPES, type ScaleTypeId } from '@thoremin/sdk/music/theory';
 import { SOUNDS, type SoundId } from '@thoremin/sdk/music/sounds';
-import { MOTION_SIGNS, signText } from '@thoremin/asl';
+import { MOTION_SIGNS, signText } from '../recognizer';
 import { letterChordName } from '../nodes/sign_chord';
 import { DEFAULT_ASL_DIAL, type AslDialParams } from '../schema';
 import { useAslStatus } from '../app/aslStatus';

@@ -1,9 +1,9 @@
 {
   "name": "@thoremin/ext-asl",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "thoremin's ASL extension: the sign reader (@thoremin/asl) as a node and branch, the sign-chord node, and the ASL Viewer and ASL Chords instruments. Imports only the SDK packages. TypeScript source, consumed through the workspace.",
+  "description": "thoremin's ASL plugin: American Sign Language read from the hands (the fingerspelled alphabet and common words), a lazy thoremin extension with the ASL Viewer and ASL Chords instruments, the pure recogniser it wraps, its trained weights, and the training pipeline. TypeScript source, consumed by thoremin as a git dependency.",
   "exports": {
     ".": "./src/index.ts",
     "./app/aslStatus": "./src/app/aslStatus.ts",
@@ -11,22 +11,32 @@
     "./dials": "./src/dials.ts",
     "./lazy": "./src/lazy.ts",
     "./lazy_ui": "./src/lazy_ui.tsx",
+    "./models/*": "./models/*",
     "./nodes/asl_signs": "./src/nodes/asl_signs.ts",
     "./nodes/sign_chord": "./src/nodes/sign_chord.ts",
+    "./package.json": "./package.json",
     "./panels/asl": "./src/panels/asl.tsx",
+    "./recognizer": "./src/recognizer/index.ts",
     "./schema": "./src/schema.ts",
     "./ui": "./src/ui.tsx"
   },
-  "dependencies": {
-    "@thoremin/asl": "*",
+  "peerDependencies": {
     "@thoremin/dag": "*",
     "@thoremin/lazy": "*",
     "@thoremin/sdk": "*",
     "@thoremin/sdk-ui": "*",
+    "react": "*",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },
-  "peerDependencies": {
-    "react": "*"
-  }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thorwhalen/thoremin-asl.git"
+  },
+  "files": [
+    "src",
+    "models",
+    "README.md",
+    "ATTRIBUTIONS.md"
+  ]
 }

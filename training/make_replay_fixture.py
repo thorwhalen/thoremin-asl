@@ -1,4 +1,4 @@
-"""Write test/fixtures/asl/clips.json: a few real clips (training data: this is a regression
+"""Write test/fixtures/clips.json: a few real clips (training data: this is a regression
 replay of the whole recogniser, not an accuracy measure) as browser-shaped hand frames.
 usage: make_replay_fixture.py <landmarks_dir> <out.json> gloss:index ..."""
 import json, sys

@@ -1,5 +1,5 @@
 /**
- * Fixture replay of the whole recogniser (`test/fixtures/asl/clips.json`: real MediaPipe hand
+ * Fixture replay of the whole recogniser (`test/fixtures/clips.json`: real MediaPipe hand
  * landmarks of real signers, at their real timestamps, from the public Aslense corpus). These
  * clips are in the shipped models' training data, so this pins BEHAVIOUR end to end (the
  * fusion, smoothing, hysteresis and latch over real streams), not accuracy; the accuracy
@@ -8,9 +8,9 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { createSignRecognizer, parseMlpModel, type HandInput, type SignId } from '@thoremin/asl';
-import staticJson from '@thoremin/asl/models/static.json';
-import motionJson from '@thoremin/asl/models/motion.json';
+import { createSignRecognizer, parseMlpModel, type HandInput, type SignId } from '@thoremin/ext-asl/recognizer';
+import staticJson from '@thoremin/ext-asl/models/static.json';
+import motionJson from '@thoremin/ext-asl/models/motion.json';
 
 interface Clip {
   gloss: string;
@@ -18,7 +18,7 @@ interface Clip {
   height: number;
   frames: { t: number; hands: HandInput[] }[];
 }
-const { clips } = JSON.parse(readFileSync(join(__dirname, '..', 'fixtures', 'asl', 'clips.json'), 'utf8')) as { clips: Clip[] };
+const { clips } = JSON.parse(readFileSync(join(__dirname, 'fixtures', 'clips.json'), 'utf8')) as { clips: Clip[] };
 const staticModel = parseMlpModel(staticJson);
 const motionModel = parseMlpModel(motionJson);
 

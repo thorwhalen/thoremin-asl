@@ -3,7 +3,7 @@
  * softmax. The shipped ASL models are a few thousand weights, a few microseconds a frame,
  * so no ML runtime (TF.js, ONNX) is worth its download here.
  *
- * The weights arrive as JSON (`thoremin-asl-mlp/1`, written by `scripts/asl/`), checked
+ * The weights arrive as JSON (`thoremin-asl-mlp/1`, written by `training/`), checked
  * once by {@link parseMlpModel} so a malformed file fails at load with the reason, never
  * as NaN probabilities a frame later.
  */

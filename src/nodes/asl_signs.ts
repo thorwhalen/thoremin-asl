@@ -1,7 +1,7 @@
 /**
  * `asl-signs` node: the hands in, an ASL reading out, every tick.
  *
- * Wraps `@thoremin/asl`'s recogniser. The two small models load lazily (the shared
+ * Wraps the recogniser (`../recognizer`). The two small models load lazily (the shared
  * `@thoremin/lazy` pattern) the first time the node runs, so a build that never reads signs
  * never downloads their weights. Two outputs carry the same reading: `reading` with the
  * sign ids (what the chord node keys on) and `signs` in the overlay's generic
@@ -19,7 +19,7 @@ import {
   type MlpModel,
   type SignRecognizer,
   type SignScores,
-} from '@thoremin/asl';
+} from '../recognizer';
 import { AslDialSchema, DEFAULT_ASL_DIAL, type AslDialParams } from '../schema';
 
 // The params ARE the `asl` dial; the schema lives in `../schema` so the eager stub can carry
@@ -35,7 +35,7 @@ export interface AslModels {
 
 /** The default loader: the weights as lazily imported JSON chunks. */
 export async function loadAslModels(): Promise<AslModels> {
-  const [s, m] = await Promise.all([import('@thoremin/asl/models/static.json'), import('@thoremin/asl/models/motion.json')]);
+  const [s, m] = await Promise.all([import('../../models/static.json'), import('../../models/motion.json')]);
   return { staticModel: parseMlpModel(s.default), motionModel: parseMlpModel(m.default) };
 }
 

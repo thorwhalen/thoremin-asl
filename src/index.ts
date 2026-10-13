@@ -1,6 +1,6 @@
 /**
  * The ASL extension: American Sign Language read from the hands, and two instruments built on
- * it. The recogniser itself is the pure package `@thoremin/asl` (reusable without thoremin);
+ * it. The recogniser itself is `./recognizer` (pure, reusable without thoremin: `@thoremin/ext-asl/recognizer`);
  * this manifest wraps it in a node, gives it a dial, a branch and a chord node.
  *
  * - **ASL Viewer**: video only. The sign being made, large, and a bar per sign (the

@@ -1,4 +1,4 @@
-# The ASL training pipeline (scripts/asl/). mediapipe 0.10.21: the CPU wheel that runs
+# The ASL training pipeline (training/). mediapipe 0.10.21: the CPU wheel that runs
 # headless on a server; 1.x needs GL libraries. numpy < 2 is what it pins.
 mediapipe==0.10.21
 numpy<2

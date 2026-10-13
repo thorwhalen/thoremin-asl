@@ -1,11 +1,11 @@
-# @thoremin/asl
+# The recogniser (`@thoremin/ext-asl/recognizer`)
 
 American Sign Language from hand landmarks: the fingerspelled alphabet and a few common words, as a score per sign, every frame. Pure TypeScript (no DAG, no DOM, no ML runtime); give it MediaPipe hand landmarks, get a reading.
 
 ```ts
-import { createSignRecognizer, parseMlpModel } from '@thoremin/asl';
-import staticJson from '@thoremin/asl/models/static.json';
-import motionJson from '@thoremin/asl/models/motion.json';
+import { createSignRecognizer, parseMlpModel } from '@thoremin/ext-asl/recognizer';
+import staticJson from '@thoremin/ext-asl/models/static.json';
+import motionJson from '@thoremin/ext-asl/models/motion.json';
 
 const reader = createSignRecognizer(parseMlpModel(staticJson), parseMlpModel(motionJson));
 const r = reader.update({ width, height, hands }, tSeconds); // hands: MediaPipe HandLandmarker, keypoints in pixels
@@ -22,7 +22,7 @@ The two fuse into one distribution (`recognizer.ts`), with time-constant smoothi
 
 ## How good it is
 
-See the model comparison in `docs/research/asl-recognition.md`. Both models were trained on public data (MIT-licensed corpora on Hugging Face) by `scripts/asl/`, which also writes the parity fixture that pins this package's featurisation to the training code (`test/asl/parity.test.ts`).
+See the model comparison in [`docs/asl-recognition.md`](asl-recognition.md). Both models were trained on public data (MIT-licensed corpora on Hugging Face) by `training/`, which also writes the parity fixture that pins this package's featurisation to the training code (`test/parity.test.ts`).
 
 ## Limits worth knowing
 

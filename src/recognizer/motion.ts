@@ -1,6 +1,6 @@
 /**
  * Motion signs from a window of frames. MUST stay identical to the training featuriser
- * (`scripts/asl/motion_common.py`).
+ * (`training/motion_common.py`).
  *
  * Per frame the recogniser keeps a {@link MotionFrame}: the static model's letter
  * posterior (what the hand's shape looks like now) and four points in the mirrored image

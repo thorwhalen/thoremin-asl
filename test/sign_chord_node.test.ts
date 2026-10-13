@@ -4,7 +4,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { signChordNode, SIGN_CHORD_VOICE_ID_BASE, MAX_SIGN_CHORD_VOICES } from '@thoremin/ext-asl/nodes/sign_chord';
-import { emptyScores, SIGN_IDS, type SignId, type SignScores } from '@thoremin/asl';
+import { emptyScores, SIGN_IDS, type SignId, type SignScores } from '@thoremin/ext-asl/recognizer';
 import { chordName, type ScaleSpec } from '@thoremin/sdk/music/theory';
 import type { SynthParams } from '@thoremin/sdk/nodes/domain';
 

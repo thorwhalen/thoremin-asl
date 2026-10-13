@@ -1,21 +1,21 @@
 /**
- * The browser featurisers agree with the training ones. `test/fixtures/asl/parity.json` holds
+ * The browser featurisers agree with the training ones. `test/fixtures/parity.json` holds
  * real hands and one real motion window (from the training data) with the features and
- * probabilities `scripts/asl/` computed for them; `@thoremin/asl` must reproduce them. A
+ * probabilities `training/` computed for them; the recogniser (`@thoremin/ext-asl/recognizer`) must reproduce them. A
  * drift here means the shipped weights are being fed something they were not trained on.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { handFeatures, mlpPredict, parseMlpModel, toMotionFrame, windowFeatures, motionMeta, type FeatureKind, type HandInput } from '@thoremin/asl';
-import staticJson from '@thoremin/asl/models/static.json';
-import motionJson from '@thoremin/asl/models/motion.json';
+import { handFeatures, mlpPredict, parseMlpModel, toMotionFrame, windowFeatures, motionMeta, type FeatureKind, type HandInput } from '@thoremin/ext-asl/recognizer';
+import staticJson from '@thoremin/ext-asl/models/static.json';
+import motionJson from '@thoremin/ext-asl/models/motion.json';
 
 interface Fixture {
   hands: { gloss: string; width: number; height: number; hand: HandInput; features: number[]; post: number[] }[];
   window: { width: number; height: number; frames: { t: number; hand: HandInput }[]; features: number[]; probs: number[] };
 }
-const fx = JSON.parse(readFileSync(join(__dirname, '..', 'fixtures', 'asl', 'parity.json'), 'utf8')) as Fixture;
+const fx = JSON.parse(readFileSync(join(__dirname, 'fixtures', 'parity.json'), 'utf8')) as Fixture;
 const staticModel = parseMlpModel(staticJson);
 const motionModel = parseMlpModel(motionJson);
 const close = (a: readonly number[], b: readonly number[], tol = 2e-3) => {

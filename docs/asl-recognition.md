@@ -1,6 +1,6 @@
 # ASL recognition in the browser: what was tried, what ships, how good it is
 
-Date: 2026-10-12. Code: `packages/asl` (the recogniser), `packages/ext-asl` (the thoremin extension), `scripts/asl` (the training pipeline). Raw data lives in `~/.local/share/thoremin/asl/` and never in the repo.
+Date: 2026-10-12 (moved to this repository on 2026-10-13). Code: `src/recognizer` (the recogniser), `src` (the thoremin extension), `training` (the pipeline). Raw data lives in `~/.local/share/thoremin-asl/` (on the training machine) and never in the repo.
 
 ## The question
 

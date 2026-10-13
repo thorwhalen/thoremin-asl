@@ -22,7 +22,7 @@ import { classifyChord, diatonicTriad, letterChordSpec, letterDegree, midiToFreq
 import { SoundSchema } from '@thoremin/sdk/music/sounds';
 import { RENDERINGS, VOICINGS, renderGains, voiceTriad, type RenderingId, type VoicingId } from '@thoremin/sdk/music/voicing';
 import type { VoiceParams } from '@thoremin/sdk/nodes/domain';
-import type { SignScores } from '@thoremin/asl';
+import type { SignScores } from '../recognizer';
 import { DEFAULT_ASL_DIAL, type AslDialParams } from '../schema';
 
 /** Sign-chord voices start here: far from every other producer's ids (the hands 0..1, the

@@ -1,6 +1,6 @@
-"""Write test/fixtures/asl/parity.json: a few real hands and one real motion window, with the
+"""Write test/fixtures/parity.json: a few real hands and one real motion window, with the
 features and probabilities the TRAINING code computes for them. The TS test recomputes them
-with packages/asl and must agree, which pins the two featurisers together.
+with the recogniser (src/recognizer) and must agree, which pins the two featurisers together.
 
 usage: make_parity_fixture.py <landmarks_dir> <static.json> <motion.json> <out.json>
 """

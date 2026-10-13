@@ -1,4 +1,4 @@
-"""Motion-sign window features. MUST match packages/asl/src/motion.ts.
+"""Motion-sign window features. MUST match src/recognizer/motion.ts.
 
 A window is the signing hand's frames over the last D seconds. Features:
   - the static model's letter posterior, resampled at T_POST times  (handshape over time)
