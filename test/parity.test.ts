@@ -1,6 +1,6 @@
 /**
  * The browser featurisers agree with the training ones. `test/fixtures/parity.json` holds
- * real hands and one real motion window (from the training data) with the features and
+ * real hands and one real motion window (permissively licensed clips; see ATTRIBUTIONS.md) with the features and
  * probabilities `training/` computed for them; the recogniser (`@thoremin/ext-asl/recognizer`) must reproduce them. A
  * drift here means the shipped weights are being fed something they were not trained on.
  */
