@@ -54,7 +54,7 @@ jobs:
         run: |
           rm -rf host/node_modules/@thoremin/ext-asl
           mkdir -p host/node_modules/@thoremin/ext-asl host/test/ext-asl
-          cp -r plugin/package.json plugin/src plugin/models host/node_modules/@thoremin/ext-asl/
+          cp -r plugin/package.json plugin/src host/node_modules/@thoremin/ext-asl/
           cp -r plugin/test/. host/test/ext-asl/
 
       - name: Typecheck (strict)
