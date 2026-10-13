@@ -1,5 +1,5 @@
 /**
- * `@thoremin/asl`: American Sign Language from hand landmarks.
+ * The recogniser (`@thoremin/ext-asl/recognizer`): American Sign Language from hand landmarks.
  *
  * The fingerspelled alphabet (24 static letters from one frame, J and Z from movement) and
  * a few common words (all movements), recognised by two small MLPs over MediaPipe's 21 hand

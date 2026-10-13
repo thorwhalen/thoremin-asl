@@ -29,7 +29,7 @@ A change here reaches players only when a thoremin commit pins it:
 
 1. Land the change here (PR, review, green CI, squash-merge). Note the merge commit's sha.
 2. In a thoremin branch: `npm install github:thorwhalen/thoremin-asl#<sha>`. This updates the pin in `package.json` and `package-lock.json`.
-3. Run thoremin's gates: `npm run typecheck && npm test && npm run build && npm run check:lazy`, plus the browser smoke (`npm run smoke`). Then open the PR. thoremin's owner merges it and deploys it.
+3. Run thoremin's gates: `npm run typecheck && npm test && npm run build && npm run check:lazy`, plus the browser smoke (`npm run smoke`). Then land it as any thoremin change is landed (PR, review, green CI, squash-merge) and deploy it the way thoremin is deployed (its `CLAUDE.md`).
 
 Never pin a branch name: the lockfile must name an exact commit, so a deploy builds exactly what was tested.
 
@@ -40,7 +40,7 @@ Clone both side by side. In thoremin, copy your working copy over the installed 
 ```bash
 cd thoremin
 rsync -a --delete ../thoremin-asl/package.json ../thoremin-asl/src node_modules/@thoremin/ext-asl/
-cp -r ../thoremin-asl/test/. test/ext-asl/   # this plugin's tests, in thoremin's suite (do not commit them there)
+mkdir -p test/ext-asl && cp -r ../thoremin-asl/test/. test/ext-asl/   # this plugin's tests, in thoremin's suite (git-ignored there)
 npm run dev                                   # the app, with your plugin
 npm run typecheck && npx vitest run           # thoremin's gates against your plugin
 ```
