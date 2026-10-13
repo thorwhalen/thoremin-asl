@@ -1,9 +1,9 @@
 /**
  * Fixture replay of the whole recogniser (`test/fixtures/clips.json`: real MediaPipe hand
- * landmarks of real signers, at their real timestamps, from the public Aslense corpus). These
- * clips are in the shipped models' training data, so this pins BEHAVIOUR end to end (the
- * fusion, smoothing, hysteresis and latch over real streams), not accuracy; the accuracy
- * numbers come from held-out data, in `docs/research/asl-recognition.md`.
+ * landmarks of real signers, at their real timestamps, from SignAlphaSet and PopSign v1.0, both
+ * CC BY 4.0; see ATTRIBUTIONS.md). The clips were picked as ones the shipped pair reads, so this
+ * pins BEHAVIOUR end to end (the fusion, smoothing, hysteresis and latch over real streams), not
+ * accuracy; the accuracy numbers come from held-out data, in `docs/asl-recognition.md`.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
