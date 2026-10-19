@@ -31,6 +31,10 @@ const dial = (x: unknown): { enabled?: boolean; chords?: boolean } => (x && type
 
 export const ASL_EXTENSION = defineExtension({
   id: 'asl',
+  // Instruments played by signing: the hand's sign is the control, not its place. The class and
+  // the catalog row are this plugin's contributions (thoremin#600 S8): thoremin's core names neither.
+  classes: [{ id: 'sign', label: 'Sign instruments', emoji: '🤟', colour: 'hsl(280 45% 58%)' }],
+  catalog: [{ id: 'asl', label: 'Sign language', emoji: '🤟', class: 'sign', usesScale: false, on: (s) => dial((s as Record<string, unknown>).asl).enabled === true }],
   // The node types `./lazy.ts` defines (the registry checks the two lists agree on load).
   provides: ['asl-signs', 'sign-chord'],
   branches: ASL_BRANCHES,

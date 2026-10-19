@@ -30,8 +30,6 @@ export const aslChord = defineBranch({
   requires: ['asl-signs'],
   nodes: [
     { id: SIGN_CHORD_NODE_ID, type: 'sign-chord', params: {} },
-    // The chord selector the face branches share (same id, type and params: one node).
-    { id: 'chordSel', type: 'chord-select', params: {} },
   ],
   edges: [
     to({ node: ASL_SIGNS_NODE_ID, port: 'reading' }, { node: SIGN_CHORD_NODE_ID, port: 'reading' }),
@@ -39,11 +37,12 @@ export const aslChord = defineBranch({
     to(ui('chordConfig'), { node: SIGN_CHORD_NODE_ID, port: 'chordConfig' }),
     to(ui('octaveShift'), { node: SIGN_CHORD_NODE_ID, port: 'octaveShift' }),
     to(ui('asl'), { node: SIGN_CHORD_NODE_ID, port: 'config' }),
-    to({ node: SIGN_CHORD_NODE_ID, port: 'triad' }, { node: 'chordSel', port: 'c' }),
-    to({ node: 'chordSel', port: 'chord' }, overlay('chord')),
     to({ node: SIGN_CHORD_NODE_ID, port: 'captions' }, overlay('categoryCaptions')),
   ],
   voices: [{ from: { node: SIGN_CHORD_NODE_ID, port: 'params' }, role: 'instrument' }],
+  // The sign chord on the shared chord display (thoremin#600 S4): the host composes the selector
+  // and its edge to the overlay. Below the face's chords (30, 20), as it always was.
+  chords: [{ from: { node: SIGN_CHORD_NODE_ID, port: 'triad' }, priority: 10 }],
   overlay: ['chordName'],
 });
 
