@@ -18,9 +18,10 @@
  */
 import { z } from 'zod';
 import { defineNode, type NodeContext } from '@thoremin/dag';
-import { classifyChord, diatonicTriad, letterChordSpec, letterDegree, midiToFreq, NOTES, NOTE_LETTERS, spellOnLetter, type NoteLetter, type ScaleSpec } from '@thoremin/sdk/music/theory';
+import { classifyChord, diatonicTriad, letterChordSpec, letterDegree, NOTES, NOTE_LETTERS, scalePitchClasses, spellOnLetter, type NoteLetter, type ScaleSpec } from '@thoremin/sdk/music/theory';
+import { createRealizer, DEFAULT_CONTROLS, DEFAULT_SPEC, tonesInRegister } from '@thoremin/sdk/harmony/realize';
 import { SoundSchema } from '@thoremin/sdk/music/sounds';
-import { RENDERINGS, VOICINGS, renderGains, voiceTriad, type RenderingId, type VoicingId } from '@thoremin/sdk/music/voicing';
+import { RENDERINGS, VOICINGS, type RenderingId, type VoicingId } from '@thoremin/sdk/music/voicing';
 import type { VoiceParams } from '@thoremin/sdk/nodes/domain';
 import type { SignScores } from '../lib/recognizer';
 import { DEFAULT_ASL_DIAL, type AslDialParams } from '../schema';
@@ -89,20 +90,10 @@ export const signChordNode = defineNode<Params>({
   ],
   params: Params,
   make(p) {
-    let beat = 0;
-    let timeSinceChange = 0;
-    let lastKey = '';
+    const realizer = createRealizer({ idBase: SIGN_CHORD_VOICE_ID_BASE, maxVoices: MAX_SIGN_CHORD_VOICES });
     let held: NoteLetter | null = null;
     let captionKey = '';
     let captions: string[] = [];
-
-    const voicesOf = (voiced: number[], gains: number[], gain: number, sound: VoiceParams['sound']): VoiceParams[] =>
-      Array.from({ length: MAX_SIGN_CHORD_VOICES }, (_, i) => {
-        const midi = voiced[i];
-        const raw = gains[i];
-        const g = midi !== undefined && raw !== undefined && Number.isFinite(raw) ? gain * raw : 0;
-        return { id: SIGN_CHORD_VOICE_ID_BASE + i, present: g > 0, freq: midiToFreq(midi ?? 60), gain: g, sound };
-      });
 
     return {
       process(inputs, ctx: NodeContext) {
@@ -124,15 +115,17 @@ export const signChordNode = defineNode<Params>({
         else if (!asl.holdChord) held = null;
 
         const triad = held ? letterTriad(spec, held) : [];
-        const voiced = (triad.length ? voiceTriad(triad, voicing, shift) : []).sort((a, b) => a - b);
-
-        const dt = Number.isFinite(ctx?.dt) ? ctx.dt : 0;
-        beat += (bpm / 60) * dt;
-        const key = voiced.join(',');
-        if (key !== lastKey) {
-          timeSinceChange = 0;
-          lastKey = key;
-        } else timeSinceChange += dt;
+        const { voices } = realizer.render({
+          tones: tonesInRegister(triad),
+          context: spec ? { scale: [...scalePitchClasses(spec.root, spec.type)] } : undefined,
+          spec: { ...DEFAULT_SPEC, voicing, figuration: rendering },
+          controls: { ...DEFAULT_CONTROLS, register: shift },
+          bpm,
+          gain,
+          sound,
+          silentSound: sound,
+          dt: Number.isFinite(ctx?.dt) ? ctx.dt : 0,
+        });
 
         const labels = reading?.labels ?? [];
         const ck = `${spec?.root}|${spec?.type}|${spec?.baseOctave}|${labels.length}|${asl.chords}`;
@@ -141,8 +134,7 @@ export const signChordNode = defineNode<Params>({
           captions = asl.chords ? chordCaptions(spec, labels) : [];
         }
 
-        const gains = voiced.length ? renderGains(voiced.length, rendering, beat, timeSinceChange) : [];
-        return { params: { voices: voicesOf(voiced, gains, gain, sound) }, triad, captions };
+        return { params: { voices }, triad, captions };
       },
     };
   },

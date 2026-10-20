@@ -12,9 +12,9 @@ const D_MAJOR: ScaleSpec = { root: 2, type: 'major', octaves: 2, baseOctave: 3 }
 const reading = (label: SignId | null, present = true): SignScores => ({ ...emptyScores(), present, label, kind: label ? 'static' : null });
 const ctx = { tick: 0, time: 0, dt: 1 / 30, resources: {} };
 
-function run(seq: (SignScores | undefined)[], config: Record<string, unknown> = { enabled: true, chords: true }) {
+function run(seq: (SignScores | undefined)[], config: Record<string, unknown> = { enabled: true, chords: true }, chordConfig: Record<string, unknown> = {}) {
   const node = signChordNode.make(signChordNode.params!.parse({}));
-  return seq.map((r) => node.process({ reading: r, spec: D_MAJOR, config, octaveShift: 0 }, ctx) as { params: SynthParams; triad: number[]; captions: string[] });
+  return seq.map((r) => node.process({ reading: r, spec: D_MAJOR, config, chordConfig, octaveShift: 0 }, ctx) as { params: SynthParams; triad: number[]; captions: string[] });
 }
 
 describe('sign-chord', () => {
@@ -42,5 +42,14 @@ describe('sign-chord', () => {
     expect(off!.captions).toEqual([]);
     const [on] = run([reading('A')]);
     expect(on!.captions[SIGN_IDS.indexOf('F')]).toBe('F#m');
+  });
+
+  it('plays through the shared realizer: voiceLed leads each chord from the last', () => {
+    const midiOf = (o: { params: SynthParams }) => o.params.voices.filter((v) => v.present).map((v) => Math.round(69 + 12 * Math.log2(v.freq / 440))).sort((a, b) => a - b);
+    const led = run([reading('D'), reading('G')], undefined, { voicing: 'voiceLed' }).map(midiOf);
+    const spread = run([reading('D'), reading('G')], undefined, { voicing: 'spread' }).map(midiOf);
+    const motion = ([a, b]: number[][]) => a!.reduce((sum, n, i) => sum + Math.abs((b![i] ?? n) - n), 0);
+    expect(led[1]!.length).toBeGreaterThan(0);
+    expect(motion(led)).toBeLessThan(motion(spread));
   });
 });
