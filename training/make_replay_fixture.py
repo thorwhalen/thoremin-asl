@@ -18,7 +18,7 @@ import numpy as np
 
 from asl_common import iter_records
 
-DEFAULT_SPECS = ('signalphaset_dynamic:b:B_clip2.avi', 'signalphaset_dynamic:l:L_clip2.avi', 'signalphaset_dynamic:y:Y_clip7.avi',
+DEFAULT_SPECS = ('signalphaset_dynamic:b:B_clip5.avi', 'signalphaset_dynamic:l:L_clip2.avi', 'signalphaset_dynamic:y:Y_clip7.avi',
                  'popsign:yes:game/train/4a.8006-yes-2022_12_19_12_45_16.723-0.mp4',
                  'popsign:please:game/train/4a.8017-please-2023_01_15_16_26_40.768-0.mp4',
                  'popsign:thankyou:game/train/4a.7003-thankyou-2022_12_15_13_21_36.667-0.mp4')

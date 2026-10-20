@@ -115,6 +115,7 @@ Per sign on PopSign's test signers, first round → shipped: yes 148 → 152/158
 - **J is lost**: 0/4 on WLASL (4/4 with Aslense) and 0/10 on SignAlphaSet (the first round had 6/10). Its only permissive training clip is StudioGalt's one avatar clip.
 - **Z is never recognised** (0/10 on SignAlphaSet, as with every earlier model). Same reason as J.
 - **HELLO signed as a wave reads as BYE** (SignAlphaSet 4/10): that corpus's one signer greets with what PopSign's 32 signers sign as BYE.
+- **A held B leaks into HELLO.** Replayed through the recogniser, 7 of SignAlphaSet's 10 B clips show HELLO for a while (the first round: 2 of 10), and in 3 of them B is named less than two thirds of the time. HELLO's probability stays below the threshold but outweighs B's in the fused scores. The Aslense letter clips were the main real-video "no sign" examples; the synthetic held letters replace them only in part.
 - **False signs on held letters** stay at 19% of SignAlphaSet clips (first round 12.5%), a clip counting if a false sign appears at any moment, including while the hand rises into view. A recognised motion sign stays on screen for 1 s (the latch).
 
 ## First round (2026-10-12), for the record
