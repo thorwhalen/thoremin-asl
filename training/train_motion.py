@@ -37,7 +37,7 @@ from asl_common import STATIC_LETTERS, export_pipeline, iter_records, load_model
 from motion_common import LABELS, MIN_FRAMES, MOTION_SIGNS, T_PATH, T_POST, WINDOWS, frame_records, window_features
 from sources import LICENCES
 
-DEFAULT_SOURCES = ('popsign', 'aslense', 'studiogalt', 'popsign_negatives')
+DEFAULT_SOURCES = ('popsign', 'studiogalt', 'popsign_negatives')
 SWEEP = (0.8, 0.9, 0.95, 0.98)
 
 
@@ -213,7 +213,7 @@ def main(argv=None):
     static = load_model(a.static)
     t0 = time.time()
     clips = load_clips(a.lm, manifest_rows(a.eval, 'train', set(a.sources.split(','))))
-    for spec in a.exclude or []:  # e.g. aslense:yes,no,hello (an ablation)
+    for spec in a.exclude or []:  # e.g. studiogalt:bye,hello (an ablation)
         src, labs = spec.split(':')
         clips = [c for c in clips if not (c['source'] == src and c['label'] in labs.split(','))]
     rng = np.random.default_rng(0)

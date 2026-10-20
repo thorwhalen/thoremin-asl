@@ -6,7 +6,8 @@ selection score), and export in the ``thoremin-asl-mlp/1`` format.
 No test set is read here: the test numbers come from ``evaluate.py`` on the exported model.
 
 Options worth knowing:
-  --sources        which train-eligible corpora to use (default: all the protocol allows)
+  --sources        which train-eligible corpora to use (default: the five validation kept;
+                   American Hand Signs is train-eligible but was dropped by validation)
   --cap            at most this many samples per (source, letter), so one big single-signer
                    corpus does not drown the rest (deterministic sample)
   --balance        'source': every source carries the same total weight (default); 'none'
@@ -45,7 +46,7 @@ MODELS = {
     'mlp128_a0.3': lambda: make_pipeline(StandardScaler(), MLPClassifier((128,), alpha=0.3, max_iter=600, random_state=0)),
 }
 
-DEFAULT_SOURCES = ('aslense', 'aslnow', 'asl_hg', 'asl_alphabet_gestures', 'om192006', 'studiogalt', 'american_hand_signs')
+DEFAULT_SOURCES = ('aslnow', 'asl_hg', 'asl_alphabet_gestures', 'om192006', 'studiogalt')
 KEYPOINT_SOURCES = ('aslnow', 'om192006')
 
 
@@ -168,7 +169,7 @@ def main(argv=None):
     ap.add_argument('--aug-copies', type=int, default=1)
     ap.add_argument('--models', default='logreg_c0.1')
     ap.add_argument('--loso', action='store_true')
-    ap.add_argument('--val-sources', default='aslense,aslnow,asl_hg,asl_alphabet_gestures,om192006',
+    ap.add_argument('--val-sources', default='aslnow,asl_hg,asl_alphabet_gestures,om192006',
                     help='the sources leave-one-source-out scores (each is held out in turn)')
     ap.add_argument('--export')
     ap.add_argument('--export-model')

@@ -26,7 +26,7 @@ import tarfile
 import zipfile
 
 LICENCES = {
-    'aslense': ('MIT (HF card; provenance weak: the corpus is scraped)', 'train'),
+    'aslense': ('MIT on the HF card, but scraped clips of unknown provenance (issue #4)', 'test-only'),
     'aslnow': ('MIT', 'train'),
     'popsign': ('CC BY 4.0', 'train'),
     'popsign_negatives': ('CC BY 4.0', 'train'),

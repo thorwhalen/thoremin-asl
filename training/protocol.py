@@ -12,18 +12,24 @@ seven words and ``none``; the motion model). Roles:
 
 Rules (see protocol.md for the reasoning):
 
-letters  train: aslense (letter clips), aslnow, asl_hg, asl_alphabet_gestures, om192006,
+letters  train: aslnow, asl_hg, asl_alphabet_gestures, om192006,
                 studiogalt, american_hand_signs
          test : marxulia (all; ``sample60`` = the shipped pipeline's sample), signalphaset_static,
                 signalphaset_dynamic letter clips
 motion   train: popsign corpus-train, popsign_negatives (other PopSign signs, corpus-train
-                signers, as ``none``), aslense (J, Z, words; letter clips as ``none``),
-                studiogalt (J, Z, bye, hello, please; letters as ``none``)
+                signers, as ``none``), studiogalt (J, Z, bye, hello, please; letters as ``none``)
          val  : popsign corpus-val
          test : popsign corpus-test, asl_citizen (all splits; ``corpus_split=test`` is the
                 headline), wlasl, signalphaset_dynamic (letter clips as ``none``)
          excluded: aslense clips that are byte-identical to (or share a file name with) an
                 asl_citizen or wlasl clip; wlasl 'goodbye' (another gloss)
+
+Clean-data rule (amendment 3, both tasks; thoremin-asl issue #4): Aslense is TEST-ONLY. Its
+clips are scraped and of unknown provenance (some are byte copies of WLASL and ASL Citizen
+clips), so no Aslense clip trains either model. Every Aslense clip gets the role ``test-only``
+(never trained on, in no reported test set), or ``excluded`` when it is a copy of a test clip.
+This supersedes amendment 2, which still trained on the Aslense clips whose names tied them to
+no other corpus.
 
 Outputs, in ``--out``: ``manifest.csv`` (one row per record and task) and
 ``duplicates.csv`` (the Aslense copies found and what they copy).
@@ -40,9 +46,9 @@ from collections import Counter, defaultdict
 from asl_common import STATIC_LETTERS, iter_records
 from motion_common import MOTION_SIGNS
 
-LETTER_TRAIN = ('aslense', 'aslnow', 'asl_hg', 'asl_alphabet_gestures', 'om192006', 'studiogalt', 'american_hand_signs')
+LETTER_TRAIN = ('aslnow', 'asl_hg', 'asl_alphabet_gestures', 'om192006', 'studiogalt', 'american_hand_signs')
 LETTER_TEST = ('marxulia', 'signalphaset_static', 'signalphaset_dynamic')
-MOTION_SOURCES = ('popsign', 'aslense', 'studiogalt', 'asl_citizen', 'wlasl', 'signalphaset_dynamic')
+MOTION_SOURCES = ('popsign', 'studiogalt', 'asl_citizen', 'wlasl', 'signalphaset_dynamic')
 
 
 def _md5(path):
@@ -75,6 +81,13 @@ def find_copies(raw):
 def roles(rec, copies):
     """``[(task, role, note)]`` for one landmark record."""
     src, lab, split = rec['source'], rec['label'], rec.get('split')
+    if src == 'aslense':  # test-only (issue #4): never trained on, in no reported test set
+        tasks = (['letters'] if lab in STATIC_LETTERS else []) + \
+            (['motion'] if (lab in STATIC_LETTERS or lab in MOTION_SIGNS) and rec['kind'] == 'video' else [])
+        if rec['id'] in copies:
+            s, i, how = copies[rec['id']]
+            return [(t, 'excluded', f'copy of {s} {i} ({how})') for t in tasks]
+        return [(t, 'test-only', 'licence unclear: scraped, unknown provenance') for t in tasks]
     out = []
     if lab in STATIC_LETTERS:
         if src in LETTER_TRAIN:
@@ -90,20 +103,12 @@ def roles(rec, copies):
         cls = lab if is_sign else 'none'
         if src == 'popsign':
             out.append(('motion', {'train': 'train', 'val': 'val', 'test': 'test'}[split], cls))
-        elif src == 'aslense':
-            if rec['id'] in copies:
-                s, i, how = copies[rec['id']]
-                out.append(('motion', 'excluded', f'copy of {s} {i} ({how})'))
-            else:
-                out.append(('motion', 'train', cls))
         elif src == 'studiogalt':
             out.append(('motion', 'train', cls))
         else:  # asl_citizen, wlasl, signalphaset_dynamic
             out.append(('motion', 'test', cls))
     elif src == 'wlasl':
         out.append(('motion', 'excluded', f'gloss {lab!r} is not one of ours'))
-    if src == 'aslense' and rec['id'] in copies and lab in STATIC_LETTERS:
-        out = [(t, 'excluded', 'copy of a test-only clip') if t == 'letters' else (t, r, n) for t, r, n in out]
     return out
 
 

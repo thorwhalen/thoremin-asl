@@ -2,7 +2,7 @@
 
 Trains the two models the recogniser ships (`src/lib/recognizer/models/static.json`: the 24 static letters; `motion.json`: J, Z and seven words), measures them on held-out cross-source test sets, and writes the test fixtures that pin the TS featurisation to this code. The models use the recogniser's featurisation (`geo` letter features, `asl-motion/1` windows) and the `thoremin-asl-mlp/1` format, so an exported model drops into `src/lib/recognizer/models/` unchanged. The numbers, and the reasoning behind every choice, are in [`docs/asl-recognition.md`](../docs/asl-recognition.md).
 
-Data never lives in this repository. Raw corpora, landmarks, models and results live in the app-data dir (`~/.local/share/thoremin-asl/`: `raw/`, `landmarks/`, `models/`, `eval/`); `SOURCES.md` there has every corpus's licence and class (TRAIN or TEST-ONLY). Only permissively licensed data is trained on; the rest is test-only.
+Data never lives in this repository. Raw corpora, landmarks, models and results live in the app-data dir (`~/.local/share/thoremin-asl/`: `raw/`, `landmarks/`, `models/`, `eval/`); `SOURCES.md` there has every corpus's licence and class (TRAIN or TEST-ONLY). Only permissively licensed data is trained on; the rest is test-only. Aslense is test-only too: its licence cannot be relied on (issue #4).
 
 Run from this directory. `-I` (isolated) matters: the pipeline reads downloaded, untrusted files, and `asl.py` puts only its own directory on `sys.path`.
 
@@ -25,10 +25,10 @@ $PY protocol --raw $D/raw --lm $D/landmarks --out $D/eval
 # 3. Letters: leave-one-source-out selection, then the export (the shipped recipe)
 $PY train-static --lm $D/landmarks --eval $D/eval --models logreg_c0.1,mlp64_a1 --loso
 $PY train-static --lm $D/landmarks --eval $D/eval --models mlp64_a1 \
-  --sources aslense,aslnow,asl_hg,asl_alphabet_gestures,om192006,studiogalt --export $D/models/candidates/static.json
+  --sources aslnow,asl_hg,asl_alphabet_gestures,om192006,studiogalt --export $D/models/candidates/static.json
 # 4. Motion, on top of that letter model (PopSign validation signers + grouped CV for selection)
 $PY train-motion --lm $D/landmarks --eval $D/eval --static $D/models/candidates/static.json \
-  --aug 10 --hidden 128,32 --alpha 0.03 --threshold 0.95 --cv
+  --aug 10 --hidden 128,32 --alpha 0.03 --threshold 0.95 --still-none 10 --cv
 $PY train-motion ... --export $D/models/candidates/motion.json        # the same flags, without --cv
 # 5. Test: the shipped pair and the candidate pair on the same sets, then the comparison
 $PY evaluate --lm $D/landmarks --eval $D/eval --static ../src/lib/recognizer/models/static.json \
