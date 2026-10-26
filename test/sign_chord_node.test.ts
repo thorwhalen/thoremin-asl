@@ -10,11 +10,12 @@ import type { SynthParams } from '@thoremin/sdk/nodes/domain';
 
 const D_MAJOR: ScaleSpec = { root: 2, type: 'major', octaves: 2, baseOctave: 3 };
 const reading = (label: SignId | null, present = true): SignScores => ({ ...emptyScores(), present, label, kind: label ? 'static' : null });
-const ctx = { tick: 0, time: 0, dt: 1 / 30, resources: {} };
+const ctx = (i: number) => ({ tick: i, time: i / 30, dt: 1 / 30, resources: {} });
 
-function run(seq: (SignScores | undefined)[], config: Record<string, unknown> = { enabled: true, chords: true }, chordConfig: Record<string, unknown> = {}) {
-  const node = signChordNode.make(signChordNode.params!.parse({}));
-  return seq.map((r) => node.process({ reading: r, spec: D_MAJOR, config, chordConfig, octaveShift: 0 }, ctx) as { params: SynthParams; triad: number[]; captions: string[] });
+/** One reading per camera frame (30 fps). The dwell is off unless a test turns it on. */
+function run(seq: (SignScores | undefined)[], config: Record<string, unknown> = { enabled: true, chords: true }, chordConfig: Record<string, unknown> = {}, letterDwellS = 0) {
+  const node = signChordNode.make(signChordNode.params!.parse({ letterDwellS }));
+  return seq.map((r, i) => node.process({ reading: r, spec: D_MAJOR, config, chordConfig, octaveShift: 0 }, ctx(i)) as { params: SynthParams; triad: number[]; captions: string[] });
 }
 
 describe('sign-chord', () => {
@@ -29,6 +30,20 @@ describe('sign-chord', () => {
     const outs = run([reading('A'), reading('H'), reading(null), reading(null, false)]);
     expect(outs.map((o) => chordName(o.triad) || '-')).toEqual(['A', 'A', 'A', '-']);
     expect(outs[3]!.params.voices.every((v) => !v.present)).toBe(true);
+  });
+
+  it('with the dwell, a letter read for a moment plays nothing; one read for 0.2 s plays', () => {
+    const on = { enabled: true, chords: true };
+    // Four frames of C (a misread, or a letter passed on the way), then another sign: no chord.
+    const passing = run([...Array(4).fill(reading('C')), ...Array(20).fill(reading('H'))], on, {}, 0.2);
+    expect(passing.every((o) => o.triad.length === 0)).toBe(true);
+    // F held: nothing for the first 0.2 s, then F#m, and it stays.
+    const held = run(Array(12).fill(reading('F')), on, {}, 0.2);
+    expect(held.slice(0, 6).every((o) => o.triad.length === 0)).toBe(true);
+    expect(held.slice(6).every((o) => chordName(o.triad) === 'F#m')).toBe(true);
+    // A chord in force is not interrupted by a passing letter.
+    const through = run([...Array(10).fill(reading('A')), reading('E'), reading('E'), ...Array(5).fill(reading('A'))], on, {}, 0.2);
+    expect(through.slice(6).map((o) => chordName(o.triad))).toEqual(Array(11).fill('A'));
   });
 
   it('without holdChord, only a held A..G sounds', () => {

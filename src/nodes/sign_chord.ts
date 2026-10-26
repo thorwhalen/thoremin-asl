@@ -9,6 +9,9 @@
  * embedding so a pentatonic key spells like its parent. Voicing, rendering, sound and volume
  * are the face chords' too (`chordConfig`), so one chord section sets both instruments.
  *
+ * A letter plays once it has been read for `letterDwellS` (0.2 s by default): a letter read for a
+ * moment, passing between two signs or misread in a hand that is not signing, plays nothing.
+ *
  * With `holdChord` (the default) the last chord keeps sounding while the hand signs other
  * things, because passing from one letter to the next goes through shapes that are no
  * letter at all; it stops when the hand leaves. Without it, a chord sounds only while A..G is
@@ -34,6 +37,11 @@ export const MAX_SIGN_CHORD_VOICES = 4;
 
 const Params = z.object({
   gain: z.number().min(0).max(1).default(0.3),
+  /** Seconds a letter must be read before it plays (0 = at once). A reading passes through letters
+   *  on the way from one sign to the next, and a hand that is not signing is read as a letter now
+   *  and then for a frame or four: measured on a real conductor, four frames of "C" held a chord
+   *  for twenty seconds. Sign Map waits the same 0.2 s. */
+  letterDwellS: z.number().min(0).max(1).default(0.2),
   sound: SoundSchema.default('triangle'),
   voicing: z.enum(VOICINGS).default('spread'),
   rendering: z.enum(RENDERINGS).default('sustained'),
@@ -92,6 +100,9 @@ export const signChordNode = defineNode<Params>({
   make(p) {
     const realizer = createRealizer({ idBase: SIGN_CHORD_VOICE_ID_BASE, maxVoices: MAX_SIGN_CHORD_VOICES });
     let held: NoteLetter | null = null;
+    // The letter being read and since when (engine time), for the dwell.
+    let candidate: NoteLetter | null = null;
+    let since = 0;
     let captionKey = '';
     let captions: string[] = [];
 
@@ -110,9 +121,21 @@ export const signChordNode = defineNode<Params>({
 
         const active = asl.enabled && asl.chords && !!reading?.present && !!spec;
         const named = reading?.label ?? null;
-        if (!active) held = null;
-        else if (isChordLetter(named)) held = named;
-        else if (!asl.holdChord) held = null;
+        const now = Number.isFinite(ctx?.time) ? ctx.time : 0;
+        if (!active) {
+          held = null;
+          candidate = null;
+        } else if (isChordLetter(named)) {
+          if (named !== candidate) {
+            candidate = named;
+            since = now;
+          }
+          if (now - since >= p.letterDwellS - 1e-9) held = named;
+          else if (!asl.holdChord && held !== named) held = null;
+        } else {
+          candidate = null;
+          if (!asl.holdChord) held = null;
+        }
 
         const triad = held ? letterTriad(spec, held) : [];
         const { voices } = realizer.render({
