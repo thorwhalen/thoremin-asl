@@ -57,6 +57,20 @@ jobs:
           cp -r plugin/package.json plugin/src host/node_modules/@thoremin/ext-asl/
           cp -r plugin/test/. host/test/ext-asl/
 
+      # thoremin holds its chord instruments to a measured stability baseline (its
+      # docs/testing/stability.md). A plugin change that moves those numbers is judged where
+      # thoremin adopts it: the pin bump re-baselines in the same PR, so the trade is reviewed
+      # there. Here the numbers are re-measured with this commit and printed, and the baseline
+      # is updated in the checkout only, so the suite tests this commit against itself.
+      - name: Stability on real hands, with this commit (printed; judged at the pin bump)
+        working-directory: host
+        run: |
+          if npm run | grep -q '^  stability$'; then
+            npm run stability -- --update
+            git --no-pager diff --stat -- docs/testing || true
+            git --no-pager diff -- docs/testing/stability.md || true
+          fi
+
       - name: Typecheck (strict)
         working-directory: host
         run: npm run typecheck
