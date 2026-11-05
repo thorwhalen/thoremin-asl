@@ -11,6 +11,11 @@ const Params = z.object({
   enabled: z.boolean().default(false),
   /** Also read the movement signs (J, Z and the words); off = the 24 held letters only. */
   motion: z.boolean().default(true),
+  /** Which signs may be named: `letters` (A to Z only), `all` (letters and words), or `auto`:
+   *  letters while the letters play chords (a word is never meant there, and the words'
+   *  movements are what a hand does between two letters), all in free play. An instrument that
+   *  steers music by signs some other way (Sign Map, Sign Wheel) sets `letters` in its seed. */
+  vocabulary: z.enum(['auto', 'letters', 'all']).default('auto'),
   /** A sign is named only above this smoothed score. */
   minConfidence: z.number().min(0.2).max(0.95).default(0.45),
   /** Smoothing time constant, seconds (0 = none: every frame's reading as is). */
@@ -23,3 +28,8 @@ const Params = z.object({
 export const AslDialSchema = Params;
 export type AslDialParams = z.infer<typeof Params>;
 export const DEFAULT_ASL_DIAL: AslDialParams = AslDialSchema.parse({});
+
+/** The vocabulary the reader uses under these settings (`auto` resolved). */
+export function effectiveVocabulary(p: Pick<AslDialParams, 'vocabulary' | 'chords'>): 'letters' | 'all' {
+  return p.vocabulary === 'auto' ? (p.chords ? 'letters' : 'all') : p.vocabulary;
+}
