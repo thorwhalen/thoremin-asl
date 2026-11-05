@@ -47,6 +47,8 @@ export function toCategoryScores(r: SignScores): CategoryScores {
     text: r.label ? signText(r.label) : undefined,
     labels: r.labels.map(signShort),
     scores: r.scores,
+    ...(r.floor === undefined ? {} : { floor: r.floor }),
+    ...(r.held ? { held: true } : {}),
     title: 'ASL',
   };
 }

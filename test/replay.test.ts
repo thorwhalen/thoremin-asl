@@ -8,7 +8,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { createSignRecognizer, parseMlpModel, type HandInput, type SignId } from '@thoremin/ext-asl/recognizer';
+import { createSignRecognizer, DEFAULT_RECOGNIZER_OPTIONS, parseMlpModel, type HandInput, type SignId } from '@thoremin/ext-asl/recognizer';
 import staticJson from '@thoremin/ext-asl/models/static.json';
 import motionJson from '@thoremin/ext-asl/models/motion.json';
 
@@ -55,9 +55,16 @@ describe('replaying real signers through the recogniser', () => {
     const r = createSignRecognizer(staticModel, motionModel);
     const read = (f: { t: number; hands: HandInput[] }) => r.update({ width: clip.width, height: clip.height, hands: f.hands }, f.t);
     const withHand = clip.frames.filter((f) => f.hands.length);
-    for (const f of withHand.slice(0, 8)) read(f);
+    let seen = read(withHand[0]!);
+    for (const f of withHand.slice(1, 8)) seen = read(f);
+    // A reading says the threshold it was named against, and that it was read, not kept.
+    expect(seen.floor).toBe(DEFAULT_RECOGNIZER_OPTIONS.minConfidence);
+    expect(seen.held).toBeFalsy();
     const t = withHand[7]!.t;
-    expect(read({ t: t + 0.05, hands: [] }).label).toBe('B'); // a blink
+    const blink = read({ t: t + 0.05, hands: [] });
+    expect(blink.label).toBe('B'); // a blink
+    expect(blink.held).toBe(true); // kept, not read again: no new evidence for a commit gate
+    expect(blink.scores).toEqual(seen.scores);
     expect(read({ t: t + 1, hands: [] }).present).toBe(false); // gone
   });
 
