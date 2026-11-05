@@ -79,6 +79,7 @@ describe('J and Z drawn in the air', () => {
     t,
     shape,
     palm: 1,
+    wrist: [0, 0],
     index: [ix, 0],
     pinky: [0, py],
     knuckles,
