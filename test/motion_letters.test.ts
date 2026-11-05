@@ -103,8 +103,37 @@ describe('J and Z drawn in the air', () => {
     expect(trajectoryLetter(still)).toBeNull();
   });
 
-  // Measured on these clips (docs/recognizer.md): J 10/10 and Z 6/10 in both vocabularies with
-  // the drawn path; the motion model alone read J 1/10 and Z 0/10 beside the words.
+  it('two pointing hands that swap height are not a Z (the path starts again with each hand)', () => {
+    // An index hand: index straight up, the other fingers folded back toward the wrist.
+    const indexHand = (x: number, y: number): HandInput => {
+      const k = Array.from({ length: 21 }, () => ({ x: x + 10, y: y - 50, z: 0 }));
+      k[0] = { x, y, z: 0 };
+      k[6] = { x, y: y - 60, z: 0 };
+      k[8] = { x, y: y - 120, z: 0 };
+      for (const [pip, tip] of [[10, 12], [14, 16], [18, 20]] as const) {
+        k[pip] = { x: x + 15, y: y - 55, z: 0 };
+        k[tip] = { x: x + 12, y: y - 40, z: 0 };
+      }
+      return { handedness: 'Right', keypoints: k };
+    };
+    const run = (pathJump: number) => {
+      const r = createSignRecognizer(staticModel, motionModel, { vocabulary: 'letters', pathJump });
+      const named = new Set<string>();
+      for (let i = 0; i < 90; i++) {
+        const leftHigher = Math.floor(i / 4) % 2 === 0;
+        const hands = [indexHand(100, leftHigher ? 300 : 320), indexHand(400, leftHigher ? 320 : 300)];
+        const s = r.update({ width: 640, height: 480, hands }, i / 30);
+        if (s.label) named.add(s.label);
+      }
+      return named;
+    };
+    expect(run(Infinity).has('Z'), 'the scenario draws a Z when the hands are not told apart').toBe(true);
+    expect(run(1.5).has('Z')).toBe(false);
+  });
+
+  // Measured on these clips (docs/recognizer.md): J 10/10 and Z 5/10 in both vocabularies with
+  // the drawn path, 1 of the 24 held clips read as J or Z; the shipped motion model alone read J
+  // 0/10 and Z 0/10 beside the words.
   for (const vocabulary of ['letters', 'all'] as const) {
     it(`reads a held-out signer's J and Z, and rarely a held letter as one (${vocabulary})`, () => {
       const rate = (letter: string) => {

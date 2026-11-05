@@ -13,7 +13,8 @@ const Params = z.object({
   motion: z.boolean().default(true),
   /** Which signs may be named: `letters` (A to Z only), `all` (letters and words), or `auto`:
    *  letters while the letters play chords (a word is never meant there, and the words'
-   *  movements are what a hand does between two letters), all in free play. */
+   *  movements are what a hand does between two letters), all in free play. An instrument that
+   *  steers music by signs some other way (Sign Map, Sign Wheel) sets `letters` in its seed. */
   vocabulary: z.enum(['auto', 'letters', 'all']).default('auto'),
   /** A sign is named only above this smoothed score. */
   minConfidence: z.number().min(0.2).max(0.95).default(0.45),

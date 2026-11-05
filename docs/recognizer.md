@@ -32,11 +32,17 @@ Measured on two real sources the models never trained on:
 |---|---|---|
 | A player's own ASL Chords take (17 held chord letters, A to G with each hand): frames naming the held letter, in ASL Chords | 43 % (45 % named a word) | 97 % (no word) |
 | the same, in free play (letters and words) | 43 % | 52 % (G fixed) |
-| SignAlphaSet's 10 J clips read as J (either vocabulary) | 1 / 10 | 10 / 10 |
-| SignAlphaSet's 10 Z clips read as Z (either vocabulary) | 0 / 10 | 6 / 10 |
-| 51 held-letter clips (two of each of 24 letters, three more of I) read as J or Z at some point | 1 / 51 | 1 / 51 |
-| thoremin's stability harness, ASL Chords (`docs/testing/stability.md` there): a real signer, letters in flow / with gaps | missed 1/9, 3/8; latency p90 3.1 s, 3.4 s | missed 0/9, 1/8; latency p90 0.27 s, 1.7 s |
-| the same, a choir conductor's hands (nobody signing) | 0 s of chord | 0 s of chord |
+| SignAlphaSet's 10 J clips read as J (either vocabulary) | 0 / 10 | 10 / 10 |
+| SignAlphaSet's 10 Z clips read as Z (either vocabulary) | 0 / 10 | 5 / 10 |
+| SignAlphaSet's 24 held-letter clips (one per letter) read as J or Z at some point | 1 / 24 | 1 / 24 |
+| thoremin's stability harness, ASL Chords (its `docs/testing/stability.md`), a real signer's letters in flow / with gaps: chords missed | 1/9, 3/8 | 0/9, 1/8 |
+| the same: latency p90 | 3.1 s, 3.4 s | 0.27 s, 1.7 s |
+| the same, with gaps: chord changes per second while a letter is held | 0.23 | 0.39 (worse: letters are read where words used to hide them) |
+| the same, a choir conductor's hands (nobody signing): seconds of chord | 0 | 0 |
+
+Two cautions. The edges of the player's 17 stretches were placed partly from the app's own live reading (the "before" reader), so the 97 % is in-sample on its boundaries; trimming 0.25, 0.5, 0.75 or 1 s off each edge gives 97 % every time (and "before" falls to 37 %), so the boundaries do not carry it. The J/Z thresholds were set on the same twenty SignAlphaSet clips they are scored on, so those two rates are an upper estimate until a second signer is measured.
+
+The `asl` dial's `auto` follows its own "A..G play chords" toggle. Other instruments that steer music by signs (thoremin's Sign Map and Sign Wheel) set `vocabulary: 'letters'` in their seeds.
 
 The player's take is private (tested by `test/player_recordings.test.ts` when it is checked out); the SignAlphaSet clips are committed (`test/fixtures/motion_letters.json.gz`, CC BY 4.0, `test/motion_letters.test.ts`). The J/Z thresholds were set on those same twenty clips, so treat the J/Z rates as an upper estimate until a second signer is measured.
 

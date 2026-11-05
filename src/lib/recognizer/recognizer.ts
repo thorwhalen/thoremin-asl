@@ -76,6 +76,9 @@ export interface RecognizerOptions {
   /** Where J and Z come from: the motion `model`, the drawn `trajectory` (`./trajectory`), or
    *  `both` (either one names it). */
   motionLetters?: 'model' | 'trajectory' | 'both';
+  /** A wrist that moves more than this many palm lengths between two frames is another hand
+   *  (the signing hand is re-picked each frame): the drawn path starts again. */
+  pathJump?: number;
 }
 
 export const DEFAULT_RECOGNIZER_OPTIONS: Required<Omit<RecognizerOptions, 'motionThreshold'>> = {
@@ -84,6 +87,7 @@ export const DEFAULT_RECOGNIZER_OPTIONS: Required<Omit<RecognizerOptions, 'motio
   returnAbove: 0.8,
   orientation: true,
   motionLetters: 'trajectory',
+  pathJump: 1.5,
   smoothing: 0.12,
   minConfidence: 0.45,
   switchMargin: 0.1,
@@ -130,6 +134,7 @@ export function createSignRecognizer(staticModel: MlpModel, motionModel: MlpMode
   let allowed = motionAllowed(o.vocabulary, o.motionLetters);
   let path: TrajectoryFrame[] = [];
   let lastDrawn: 'J' | 'Z' | null = null;
+  let pathHand: HandInput['handedness'] | null = null;
 
   let history: MotionFrame[] = [];
   let smoothed = SIGN_IDS.map(() => 0);
@@ -148,6 +153,7 @@ export function createSignRecognizer(staticModel: MlpModel, motionModel: MlpMode
     history = [];
     path = [];
     lastDrawn = null;
+    pathHand = null;
     smoothed = SIGN_IDS.map(() => 0);
     smoothedUnnamed = 0;
     lastT = null;
@@ -161,7 +167,11 @@ export function createSignRecognizer(staticModel: MlpModel, motionModel: MlpMode
   function setOptions(next: Omit<RecognizerOptions, 'history' | 'minFrameGap'>): void {
     for (const [k, v] of Object.entries(next)) if (v !== undefined && k !== 'motionThreshold') (o as Record<string, unknown>)[k] = v;
     if (next.motionThreshold !== undefined) motionThreshold = next.motionThreshold;
-    if (next.vocabulary !== undefined || next.motionLetters !== undefined) allowed = motionAllowed(o.vocabulary, o.motionLetters);
+    if (next.vocabulary !== undefined || next.motionLetters !== undefined) {
+      allowed = motionAllowed(o.vocabulary, o.motionLetters);
+      // A sign the new vocabulary leaves out does not stay on screen for the rest of its latch.
+      if (latched && !inVocabulary(latched.id, o.vocabulary)) latched = null;
+    }
   }
 
   function update(frame: SignFrame | null | undefined, t: number): SignScores {
@@ -198,15 +208,15 @@ export function createSignRecognizer(staticModel: MlpModel, motionModel: MlpMode
     // unnamed competitor: a hand moving like a word with no clear letter in it names nothing, as
     // when the word could be named (a conductor's curved hand is a weak C to the shape model and
     // THANK YOU to the motion model, frame after frame).
+    // The motion model keeps the raw posterior it was trained on; the letters' own scores (and the
+    // shape's confidence below) take the orientation rule.
+    const shape = o.orientation ? arbitrateOrientation(post, staticModel.labels, hand) : post;
     let excluded = 0;
     if (motion && allowed) motion.forEach((p, i) => (excluded += allowed![i] ? 0 : p));
-    const top = Math.max(...post);
+    const top = Math.max(...shape);
     const back = excluded > 0 ? Math.min(1, Math.max(0, (top - o.returnBelow) / (o.returnAbove - o.returnBelow))) : 1;
     const pNone = motion && noneIdx >= 0 ? motion[noneIdx]! + back * excluded : 1;
     const unnamed = (1 - back) * excluded;
-    // The motion model keeps the raw posterior it was trained on; only the letter's own score
-    // takes the orientation rule.
-    const shape = o.orientation ? arbitrateOrientation(post, staticModel.labels, hand) : post;
     shape.forEach((p, i) => {
       const j = staticIdx[i]!;
       if (j >= 0) raw[j]! += p * pNone;
@@ -241,7 +251,16 @@ export function createSignRecognizer(staticModel: MlpModel, motionModel: MlpMode
     // J and Z drawn in the air: fired on the rising edge of the path's reading, latched like a
     // motion sign, whatever the motion model says.
     if (motionModel && o.motionLetters !== 'model' && frame) {
-      path.push(toTrajectoryFrame(hand, frame.width, t));
+      const tf = toTrajectoryFrame(hand, frame.width, t);
+      // The signing hand is re-picked every frame (the higher wrist); when it changes, or the wrist
+      // jumps further than a hand moves in one frame, the path so far belongs to another hand.
+      const prev = path[path.length - 1];
+      if (prev && (hand.handedness !== pathHand || Math.hypot(tf.wrist[0] - prev.wrist[0], tf.wrist[1] - prev.wrist[1]) > o.pathJump * tf.palm)) {
+        path = [];
+        lastDrawn = null;
+      }
+      pathHand = hand.handedness;
+      path.push(tf);
       while (path.length && path[0]!.t < t - o.history) path.shift();
       const drawn = trajectoryLetter(path);
       if (drawn && drawn !== lastDrawn) latched = { id: drawn, until: t + o.motionHold };

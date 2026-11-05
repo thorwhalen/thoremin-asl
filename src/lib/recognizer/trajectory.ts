@@ -58,6 +58,7 @@ export interface TrajectoryFrame {
   t: number;
   shape: 'index' | 'pinky' | null;
   palm: number;
+  wrist: [number, number];
   index: [number, number];
   pinky: [number, number];
   /** The knuckle line's angle in the image, radians. */
@@ -89,6 +90,7 @@ export function toTrajectoryFrame(hand: HandInput, width: number, t: number, rat
     t,
     shape: motionLetterShape(hand, width, ratio),
     palm: Math.hypot(k[9]!.x - k[0]!.x, k[9]!.y - k[0]!.y) || 1,
+    wrist: [k[0]!.x, k[0]!.y],
     index: [k[8]!.x, k[8]!.y],
     pinky: [k[20]!.x, k[20]!.y],
     knuckles: Math.atan2(k[17]!.y - k[5]!.y, k[17]!.x - k[5]!.x),

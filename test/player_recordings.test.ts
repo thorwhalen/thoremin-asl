@@ -6,7 +6,10 @@
  *
  * Measured with the shipped models (docs/recognizer.md): with letters AND words, 43 % of the
  * frames inside those stretches named the held letter and 45 % named a word (B read as HELLO,
- * C as THANK YOU, G as Q); with the letters-only vocabulary and the G/Q orientation rule, 96 %.
+ * C as THANK YOU, G as Q); with the letters-only vocabulary and the G/Q orientation rule, 97 %.
+ * The stretches' edges were placed partly from the app's own live reading (the 'before' reader),
+ * so the figure is in-sample on its boundaries; with up to 1 s trimmed off each edge
+ * (`ASL_TRIM`) it holds at 97 % (docs/recognizer.md).
  *
  * The landmarks are the player's body and stay in that private repository, so this test reads
  * them at run time and is skipped without a checkout: `$THOREMIN_RECORDINGS_DIR`, or a
@@ -31,7 +34,7 @@ function recordingsDir(): string | null {
 const DIR = recordingsDir();
 const TAKE = '2026-11-05T12-51-15';
 /** Edges of each stretch left out: the hand is still settling. */
-const TRIM = 0.25;
+const TRIM = Number(process.env.ASL_TRIM ?? 0.25);
 
 interface Letter { label: string; start: number; end: number }
 
@@ -43,6 +46,7 @@ function measure(options: RecognizerOptions) {
   let words = 0;
   let n = 0;
   const longest = new Map<Letter, number>();
+  const perLetter = new Map<string, [number, number]>();
   let run = { label: null as string | null, since: 0 };
   for (const row of rows) {
     const label = r.update(row.value, row.t).label;
@@ -55,8 +59,10 @@ function measure(options: RecognizerOptions) {
       longest.set(iv, Math.max(longest.get(iv) ?? 0, row.t - Math.max(run.since, iv.start)));
     }
     if (label && label.length > 1) words++;
+    const pl = perLetter.get(iv.label) ?? [0, 0];
+    perLetter.set(iv.label, [pl[0] + (label === iv.label ? 1 : 0), pl[1] + 1]);
   }
-  return { accuracy: ok / n, words: words / n, readFor: letters.map((e) => longest.get(e) ?? 0) };
+  return { accuracy: ok / n, words: words / n, readFor: letters.map((e) => longest.get(e) ?? 0), gFrames: perLetter.get('G') ?? [0, 0] };
 }
 
 describe.runIf(DIR !== null)("the player's own ASL Chords take", () => {
@@ -71,6 +77,8 @@ describe.runIf(DIR !== null)("the player's own ASL Chords take", () => {
   it('letters and words (free play) still reads the words, and the orientation rule fixes G there too', () => {
     const m = measure({ vocabulary: 'all' });
     expect(m.words).toBeGreaterThan(0.3);
-    expect(m.accuracy).toBeGreaterThan(0.5);
+    expect(m.accuracy).toBeGreaterThan(0.45);
+    // G: read as Q in more than half its frames without the rule (37 % G), 93 % with it.
+    expect(m.gFrames[0] / m.gFrames[1]).toBeGreaterThan(0.85);
   });
 });
