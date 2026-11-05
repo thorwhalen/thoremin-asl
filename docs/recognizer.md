@@ -46,6 +46,23 @@ The `asl` dial's `auto` follows its own "A..G play chords" toggle. Other instrum
 
 The player's take is private (tested by `test/player_recordings.test.ts` when it is checked out); the SignAlphaSet clips are committed (`test/fixtures/motion_letters.json.gz`, CC BY 4.0, `test/motion_letters.test.ts`). The J/Z thresholds were set on those same twenty clips, so treat the J/Z rates as an upper estimate until a second signer is measured.
 
+## From a reading to a chord: how soon a letter plays
+
+ASL Chords (`sign-chord`) and thoremin's Sign Map do not play a letter the moment it is named: a reading passes through letters on the way from one sign to the next, and a hand that is not signing is now and then read as a weak letter. Until 2026-11-05 a letter played once it had been named for 0.2 s, and the player heard the chord about 0.25 to 0.33 s after the label appeared (measured on the synth track of their ASL take: 0.21 s of dwell, then the pitch glide and the old chord's reverb).
+
+Now a letter plays once the reader is sure enough of it for long enough (thoremin's `@thoremin/sdk/util/commit_gate`): its score above the reader's threshold (`floor` on the reading, the dial's `minConfidence`), summed over the seconds it is named, must reach 0.02 (0.1 s of a reading 0.2 over the threshold, 0.04 s of a sure one), or it must be named for 0.2 s, whichever comes first. A reading the reader keeps through a lost frame (`held`) times nothing: a letter being timed starts over, and the chord in force stays.
+
+| Measured on | 0.2 s dwell | evidence |
+|---|---|---|
+| the player's 17 held chord letters: from the label to the chord, median (slowest) | 0.23 s (0.24 s) | 0.10 s (0.17 s) |
+| the same: letters that play | 17 / 17 | 17 / 17 |
+| a choir conductor's hands (nobody signing): seconds of chord | 0 | 0 |
+| the same, with the hand lost for 2, 5 or 10 frames after one of its two weak C runs (0.47 to 0.56): cases that play a chord (for about 19 s) | 5 of 6 | 1 of 6 |
+| thoremin's stability harness, the real signer in flow: latency median (p90) | 267 ms (333) | 167 ms (233) |
+| the same with gaps: chord changes per second while a letter is held; chords missed | 0.39; 1/8 | 0; 0/8 |
+
+The conductor's strongest weak C sums to 0.0145 over its six frames, against the 0.02 needed: a margin of 1.4, where the 0.2 s dwell it replaced cleared the same six frames (0.17 s) by 1.2. At `minConfidence` 0.40 (the dial allows it) both rules play that C.
+
 ## How good it is
 
 See the model comparison in [`docs/asl-recognition.md`](asl-recognition.md). Both models were trained on public data (MIT-licensed corpora on Hugging Face) by `training/`, which also writes the parity fixture that pins this package's featurisation to the training code (`test/parity.test.ts`).

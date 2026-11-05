@@ -40,6 +40,12 @@ export interface SignScores {
   kind: 'static' | 'motion' | null;
   /** Which hand signs. */
   hand: 'Left' | 'Right' | null;
+  /** The score a sign needs to be named (the reader's `minConfidence`): what a consumer counts a
+   *  reading's confidence from (sign-chord's and Sign Map's commit gate). */
+  floor?: number;
+  /** The reading is the last one, kept through a short loss of the hand (`dropout`): nothing new
+   *  was read, so it is no new evidence for the sign it names. */
+  held?: boolean;
 }
 
 export interface RecognizerOptions {
@@ -183,7 +189,10 @@ export function createSignRecognizer(staticModel: MlpModel, motionModel: MlpMode
     if (!hand || !x) {
       // A frame or two without the hand (tracking blinked) keeps the last reading, so a
       // held chord does not dip; a longer absence is the hand gone.
-      if (last.present && t - lastHandT <= o.dropout) return last;
+      if (last.present && t - lastHandT <= o.dropout) {
+        if (!last.held) last = { ...last, held: true };
+        return last;
+      }
       reset();
       lastT = t;
       return last;
@@ -281,7 +290,7 @@ export function createSignRecognizer(staticModel: MlpModel, motionModel: MlpMode
     }
     current = label;
     const kind = label === null ? null : STATIC_SIGNS.includes(label) ? 'static' : 'motion';
-    last = { present: true, label, labels: SIGN_IDS, scores: smoothed.slice(), kind, hand: hand.handedness };
+    last = { present: true, label, labels: SIGN_IDS, scores: smoothed.slice(), kind, hand: hand.handedness, floor: o.minConfidence };
     return last;
   }
 

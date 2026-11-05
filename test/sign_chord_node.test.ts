@@ -46,6 +46,40 @@ describe('sign-chord', () => {
     expect(through.slice(6).map((o) => chordName(o.triad))).toEqual(Array(11).fill('A'));
   });
 
+  it('a letter the reader is sure of plays sooner; a marginal one waits for the dwell', () => {
+    const on = { enabled: true, chords: true };
+    // A reading as the recogniser gives it: the letter's smoothed score and the reader's threshold.
+    const scored = (label: SignId, score: number, extra: Partial<SignScores> = { floor: 0.45 }): SignScores => ({
+      ...reading(label),
+      scores: SIGN_IDS.map((id) => (id === label ? score : 0)),
+      ...extra,
+    });
+    const firstChord = (seq: SignScores[], evidence = 0.02) => {
+      const n = signChordNode.make(signChordNode.params!.parse({ letterDwellS: 0.2, letterEvidence: evidence }));
+      return seq.findIndex((r, i) => (n.process({ reading: r, spec: D_MAJOR, config: on, chordConfig: {}, octaveShift: 0 }, ctx(i)) as { triad: number[] }).triad.length > 0);
+    };
+    const hold = (r: SignScores, n = 30) => Array<SignScores>(n).fill(r);
+    // 0.95: 0.5 over the threshold, 0.0167 a frame: the second frame after the first reaches 0.02.
+    expect(firstChord(hold(scored('F', 0.95)))).toBe(2);
+    // 0.65: 0.2 over, 0.0067 a frame: three frames (0.1 s).
+    expect(firstChord(hold(scored('F', 0.65)))).toBe(3);
+    // Just over the threshold (a conductor's hand read as a weak C): the full 0.2 s dwell.
+    expect(firstChord(hold(scored('F', 0.48)))).toBe(6);
+    // Evidence off, or a reading that gives no threshold: the dwell alone, whatever the score.
+    expect(firstChord(hold(scored('F', 0.95)), 0)).toBe(6);
+    expect(firstChord(hold(scored('F', 0.95, {})))).toBe(6);
+    // A reading kept through lost frames (`held`) times nothing: one sure frame, then the hand is
+    // lost and the reader repeats it, and nothing plays (a conductor's hand read as a weak C, then
+    // lost, played the C on the kept reading alone). When the hand is back, the timing starts over.
+    const kept = scored('F', 0.95, { floor: 0.45, held: true });
+    expect(firstChord([scored('F', 0.95), ...hold(kept, 12)])).toBe(-1);
+    expect(firstChord([scored('F', 0.95), ...hold(kept, 3), ...hold(scored('F', 0.95))])).toBe(6);
+    // The chord in force is not dropped by kept readings.
+    const n = signChordNode.make(signChordNode.params!.parse({}));
+    const outs = [...hold(scored('F', 0.95), 6), ...hold(kept, 5)].map((r, i) => n.process({ reading: r, spec: D_MAJOR, config: on, chordConfig: {}, octaveShift: 0 }, ctx(i)) as { triad: number[] });
+    expect(outs.slice(3).every((o) => chordName(o.triad) === 'F#m')).toBe(true);
+  });
+
   it('without holdChord, only a held A..G sounds', () => {
     const outs = run([reading('A'), reading('H')], { enabled: true, chords: true, holdChord: false });
     expect(outs.map((o) => o.triad.length)).toEqual([3, 0]);
