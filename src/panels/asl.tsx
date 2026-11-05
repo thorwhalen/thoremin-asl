@@ -11,7 +11,7 @@ import { keyName, NOTE_LETTERS, NOTES, SCALE_TYPES, type ScaleTypeId } from '@th
 import { SOUNDS, type SoundId } from '@thoremin/sdk/music/sounds';
 import { MOTION_SIGNS, signText } from '../lib/recognizer';
 import { letterChordName } from '../nodes/sign_chord';
-import { DEFAULT_ASL_DIAL, type AslDialParams } from '../schema';
+import { DEFAULT_ASL_DIAL, effectiveVocabulary, type AslDialParams } from '../schema';
 import { useAslStatus } from '../app/aslStatus';
 
 /** What the reader sees right now. */
@@ -56,6 +56,14 @@ export function AslControls() {
       <label className="flex items-center gap-2 text-xs">
         <input type="checkbox" checked={c.motion} disabled={!c.enabled} onChange={(e) => dispatchDialSetIn('asl.motion', e.target.checked)} />
         Movement signs too (J, Z, words)
+      </label>
+      <label className="flex items-center justify-between gap-2 text-xs" title="Auto reads letters only while the letters play chords (a hand moving between two letters looks like a word), and letters and words in free play.">
+        <span>Signs read</span>
+        <select className={selectCls} value={c.vocabulary} disabled={!c.enabled} onChange={(e) => dispatchDialSetIn('asl.vocabulary', e.target.value)}>
+          <option value="auto">Auto ({effectiveVocabulary(c) === 'letters' ? 'letters only' : 'letters and words'})</option>
+          <option value="letters">Letters only</option>
+          <option value="all">Letters and words</option>
+        </select>
       </label>
       <label className="flex items-center justify-between gap-2 text-xs" title="A sign is named only when its score reaches this.">
         <span>Confidence ({Math.round(c.minConfidence * 100)}%)</span>

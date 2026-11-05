@@ -108,3 +108,4 @@ export function scoreMotion(model: MlpModel, frames: readonly MotionFrame[], met
   }
   return best;
 }
+

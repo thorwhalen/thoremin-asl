@@ -20,6 +20,26 @@ r.scores;  // one 0..1 score per sign in SIGN_IDS order (A..Z, then the words), 
 
 The two fuse into one distribution (`recognizer.ts`), with time-constant smoothing, a confidence floor, hysteresis between signs, and a short latch that keeps a word on screen after its movement ends.
 
+Three options shape the reading:
+
+- **`vocabulary`**: `'all'` (letters and words) or `'letters'` (A to Z only; a word is never named). What the motion model gave the words goes back to the letters as far as the hand clearly holds a letter's shape (the letter model's top probability from 0.6 to 0.8); the rest is an unnamed competitor, so a hand that moves like a word with no clear letter in it names nothing (a conductor's curved hand: weak C, strong THANK YOU). An instrument that maps letters to music reads letters only: a hand moving from one letter to the next makes exactly the movements the words are (B read as HELLO, C as THANK YOU). The `asl` dial's `vocabulary` is `auto` by default: letters while the letters play chords, letters and words in free play.
+- **`orientation`** (on by default): letters that share a handshape and differ only in where it points are decided by the direction (`orientation.ts`). Today that is G (index level) and Q (index down): the model read a real player's level G as Q in half its frames.
+- **`motionLetters`**: where J and Z come from. `'trajectory'` (the default) reads them from the path the hand draws (`trajectory.ts`): the pinky hand twisting into a hook is J, the index hand drawing across, back and across is Z, checked as geometry over the last 1.8 s. `'model'` uses the motion classifier's J and Z, `'both'` either.
+
+Measured on two real sources the models never trained on:
+
+| | before | after |
+|---|---|---|
+| A player's own ASL Chords take (17 held chord letters, A to G with each hand): frames naming the held letter, in ASL Chords | 43 % (45 % named a word) | 97 % (no word) |
+| the same, in free play (letters and words) | 43 % | 52 % (G fixed) |
+| SignAlphaSet's 10 J clips read as J (either vocabulary) | 1 / 10 | 10 / 10 |
+| SignAlphaSet's 10 Z clips read as Z (either vocabulary) | 0 / 10 | 6 / 10 |
+| 51 held-letter clips (two of each of 24 letters, three more of I) read as J or Z at some point | 1 / 51 | 1 / 51 |
+| thoremin's stability harness, ASL Chords (`docs/testing/stability.md` there): a real signer, letters in flow / with gaps | missed 1/9, 3/8; latency p90 3.1 s, 3.4 s | missed 0/9, 1/8; latency p90 0.27 s, 1.7 s |
+| the same, a choir conductor's hands (nobody signing) | 0 s of chord | 0 s of chord |
+
+The player's take is private (tested by `test/player_recordings.test.ts` when it is checked out); the SignAlphaSet clips are committed (`test/fixtures/motion_letters.json.gz`, CC BY 4.0, `test/motion_letters.test.ts`). The J/Z thresholds were set on those same twenty clips, so treat the J/Z rates as an upper estimate until a second signer is measured.
+
 ## How good it is
 
 See the model comparison in [`docs/asl-recognition.md`](asl-recognition.md). Both models were trained on public data (MIT-licensed corpora on Hugging Face) by `training/`, which also writes the parity fixture that pins this package's featurisation to the training code (`test/parity.test.ts`).

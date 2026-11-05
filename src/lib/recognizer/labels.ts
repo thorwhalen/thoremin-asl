@@ -37,3 +37,15 @@ export function signShort(id: SignId): string {
 }
 
 export const isLetter = (id: string): boolean => id.length === 1;
+
+/** Which signs the reader may name. `letters`: the 26 letters only, for an instrument that maps
+ *  letters to music (a word there is never meant, and the words' movements are exactly what a
+ *  hand passing between two letters does: B read as HELLO, C as THANK YOU). `all`: letters and
+ *  words, for free play. */
+export const VOCABULARIES = ['letters', 'all'] as const;
+export type Vocabulary = (typeof VOCABULARIES)[number];
+
+/** Whether a sign belongs to a vocabulary. */
+export function inVocabulary(id: string, vocabulary: Vocabulary): boolean {
+  return vocabulary === 'all' || isLetter(id);
+}

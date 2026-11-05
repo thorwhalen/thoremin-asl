@@ -10,4 +10,6 @@ export * from './labels';
 export * from './features';
 export * from './mlp';
 export * from './motion';
+export * from './orientation';
+export * from './trajectory';
 export * from './recognizer';

@@ -20,13 +20,13 @@ import {
   type SignRecognizer,
   type SignScores,
 } from '../lib/recognizer';
-import { AslDialSchema, DEFAULT_ASL_DIAL, type AslDialParams } from '../schema';
+import { AslDialSchema, DEFAULT_ASL_DIAL, effectiveVocabulary, type AslDialParams } from '../schema';
 
 // The params ARE the `asl` dial; the schema lives in `../schema` so the eager stub can carry
 // the dial without importing this node (the extension is lazy: docs/design/lazy-extensions.md).
 const Params = AslDialSchema;
 type Params = AslDialParams;
-export { AslDialSchema, DEFAULT_ASL_DIAL, type AslDialParams };
+export { AslDialSchema, DEFAULT_ASL_DIAL, effectiveVocabulary, type AslDialParams };
 
 export interface AslModels {
   staticModel: MlpModel;
@@ -109,7 +109,7 @@ export const aslSignsNode = defineNode<Params>({
           recognizer = createSignRecognizer(models.staticModel, c.motion ? models.motionModel : null);
           recognizerKey = key;
         }
-        recognizer.setOptions({ minConfidence: c.minConfidence, smoothing: c.smoothing });
+        recognizer.setOptions({ minConfidence: c.minConfidence, smoothing: c.smoothing, vocabulary: effectiveVocabulary(c) });
         const frame = inputs.hands as HandsFrame | undefined;
         // The camera's capture time (#226), so a frame ticked twice is read once and the
         // motion history is spaced as the camera took it.
